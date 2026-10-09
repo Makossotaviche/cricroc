@@ -55,11 +55,11 @@ class DatabaseSeeder extends Seeder
 
             // Produits finis : articles vendables fabriqués à partir des matières
             // premières et emballages.
-            ['nom' => 'Chips Cric Croc Fromage (50f)',    'type' => 'produit_fini','prix_unitaire' => 50,   'unite' => 'paquet', 'qte' => 1000,'seuil' => 100],
-            ['nom' => 'Chips Cric Croc Fromage (100f)',   'type' => 'produit_fini','prix_unitaire' => 100,  'unite' => 'paquet', 'qte' => 800, 'seuil' => 100],
-            ['nom' => 'Chips Cric Croc Cacahuète (50f)',  'type' => 'produit_fini','prix_unitaire' => 50,   'unite' => 'paquet', 'qte' => 1000,'seuil' => 100],
-            ['nom' => 'Popcorn Cric Croc Salé (100f)',   'type' => 'produit_fini','prix_unitaire' => 100,  'unite' => 'sachet', 'qte' => 600, 'seuil' => 80],
-            ['nom' => 'Popcorn Cric Croc Caramel (100f)', 'type' => 'produit_fini','prix_unitaire' => 100,  'unite' => 'sachet', 'qte' => 600, 'seuil' => 80],
+            ['nom' => 'Chips Cric Croc Fromage (50f)',    'type' => 'produit_fini','prix_unitaire' => 50,   'unite' => 'ballot', 'qte' => 1000,'seuil' => 100],
+            ['nom' => 'Chips Cric Croc Fromage (100f)',   'type' => 'produit_fini','prix_unitaire' => 100,  'unite' => 'ballot', 'qte' => 800, 'seuil' => 100],
+            ['nom' => 'Chips Cric Croc Cacahuète (50f)',  'type' => 'produit_fini','prix_unitaire' => 50,   'unite' => 'ballot', 'qte' => 1000,'seuil' => 100],
+            ['nom' => 'Popcorn Cric Croc Salé (100f)',   'type' => 'produit_fini','prix_unitaire' => 100,  'unite' => 'ballot', 'qte' => 600, 'seuil' => 80],
+            ['nom' => 'Popcorn Cric Croc Caramel (100f)', 'type' => 'produit_fini','prix_unitaire' => 100,  'unite' => 'ballot', 'qte' => 600, 'seuil' => 80],
         ];
 
         foreach ($produits as $p) {
@@ -70,6 +70,10 @@ class DatabaseSeeder extends Seeder
                 ['nom' => $p['nom'], 'type' => $p['type']],
                 ['prix_unitaire' => $p['prix_unitaire'], 'unite' => $p['unite']]
             );
+
+            if ($p['type'] === 'produit_fini' && $produit->unite !== 'ballot') {
+                $produit->update(['unite' => 'ballot']);
+            }
 
             // Initialise le stock du produit. Le seuil d'alerte permet de suivre
             // les produits qui doivent être réapprovisionnés.

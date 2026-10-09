@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('stocks', function (Blueprint $table) {
             $table->id('idstock');
-            $table->decimal('quantite_disponible', 10, 2)->default(0);
-            $table->decimal('seuil_alerte', 10, 2)->default(10);
+            $table->unsignedInteger('quantite_disponible')->default(0);
+            $table->unsignedInteger('seuil_alerte')->default(10);
             $table->unsignedBigInteger('idproduit');
             $table->foreign('idproduit')->references('idproduit')->on('produits')->onDelete('cascade');
             $table->timestamps();
@@ -20,7 +20,7 @@ return new class extends Migration
         Schema::create('mouvements_stock', function (Blueprint $table) {
             $table->id();
             $table->enum('type', ['entree', 'sortie']);
-            $table->decimal('quantite', 10, 2);
+            $table->unsignedInteger('quantite');
             $table->string('motif')->nullable(); // production, vente, approvisionnement
             $table->unsignedBigInteger('idstock');
             $table->foreign('idstock')->references('idstock')->on('stocks')->onDelete('cascade');

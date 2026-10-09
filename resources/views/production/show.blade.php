@@ -25,7 +25,7 @@
                 <dd class="col-7 fw-bold">{{ $production->produit->nom }}</dd>
                 <dt class="col-5 text-muted">Qté produite</dt>
                 <dd class="col-7 fw-bold" style="color:#E8650A;">
-                    {{ $production->quantite_produite }} {{ $production->produit->unite }}
+                    {{ number_format($production->quantite_produite, 0, '.', '') }} {{ $production->produit->unite }}
                 </dd>
             </dl>
         </div>
@@ -44,7 +44,7 @@
                         @forelse($production->consommations as $c)
                         <tr>
                             <td>{{ $c->produit->nom }}</td>
-                            <td>{{ $c->quantite_consommee }} {{ $c->produit->unite }}</td>
+                            <td>{{ number_format($c->quantite_consommee, 0, '.', '') }} {{ $c->produit->unite }}</td>
                         </tr>
                         @empty
                         <tr><td colspan="2" class="text-center text-muted py-3">Aucune consommation</td></tr>

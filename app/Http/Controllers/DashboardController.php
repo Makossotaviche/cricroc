@@ -13,6 +13,7 @@ use App\Models\Facture;
 use App\Models\Production;
 use App\Models\Livraison;
 use App\Models\Client;
+use App\Models\Paiement;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -69,18 +70,47 @@ class DashboardController extends Controller
      */
     public function trendSales(Request $request)
     {
-        $labels = [];
-        $data = [];
+        $debut = now()->startOfMonth()->subMonths(11);
+        $fin = now()->endOfMonth();
+        $mois = collect(range(0, 11))->map(fn ($decalage) => $debut->copy()->addMonths($decalage));
+        $cles = $mois->map(fn ($date) => $date->format('Y-m'))->all();
 
-        for ($i = 11; $i >= 0; $i--) {
-            $date = now()->subMonths($i);
-            $labels[] = $date->format('Y-m');
-            $montant = Facture::whereYear('date_facture', $date->year)
-                ->whereMonth('date_facture', $date->month)
-                ->sum('montant_total');
-            $data[] = (float) $montant;
-        }
+        $factures = Facture::query()
+            ->selectRaw("DATE_FORMAT(date_facture, '%Y-%m') as mois, SUM(montant_total) as total")
+            ->whereBetween('date_facture', [$debut->toDateString(), $fin->toDateString()])
+            ->groupBy('mois')->pluck('total', 'mois');
 
-        return response()->json(['labels' => $labels, 'data' => $data]);
+        $paiements = Paiement::query()
+            ->selectRaw("DATE_FORMAT(date_paiement, '%Y-%m') as mois, SUM(montant) as total")
+            ->whereBetween('date_paiement', [$debut->toDateString(), $fin->toDateString()])
+            ->groupBy('mois')->pluck('total', 'mois');
+
+        $commandes = Commande::query()
+            ->selectRaw("DATE_FORMAT(date_commande, '%Y-%m') as mois, COUNT(*) as total")
+            ->where('statut', 'validee')
+            ->whereBetween('date_commande', [$debut->toDateString(), $fin->toDateString()])
+            ->groupBy('mois')->pluck('total', 'mois');
+
+        $modesPaiement = Paiement::query()
+            ->selectRaw('mode, SUM(montant) as total')
+            ->whereYear('date_paiement', now()->year)
+            ->groupBy('mode')->pluck('total', 'mode');
+
+        return response()->json([
+            'labels' => $mois->map(fn ($date) => $date->format('m/Y'))->values(),
+            'facture' => collect($cles)->map(fn ($cle) => (float) ($factures[$cle] ?? 0))->values(),
+            'encaisse' => collect($cles)->map(fn ($cle) => (float) ($paiements[$cle] ?? 0))->values(),
+            'commandes' => collect($cles)->map(fn ($cle) => (int) ($commandes[$cle] ?? 0))->values(),
+            'modes' => [
+                'labels' => $modesPaiement->keys()->map(fn ($mode) => match ($mode) {
+                    'especes' => 'Espèces',
+                    'mobile_money' => 'Mobile Money',
+                    'virement' => 'Virement',
+                    default => ucfirst(str_replace('_', ' ', $mode)),
+                })->values(),
+                'data' => $modesPaiement->values()->map(fn ($total) => (float) $total),
+            ],
+            'annee' => now()->year,
+        ]);
     }
 }

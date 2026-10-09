@@ -43,6 +43,18 @@ class NotificationInterne extends Model
         string $couleur = 'primary',
         string $lien    = null
     ): self {
+        $notificationExistante = self::where('user_id', $userId)
+            ->where('titre', $titre)
+            ->where('message', $message)
+            ->where('lien', $lien)
+            ->where('created_at', '>=', now()->subSeconds(10))
+            ->latest('id')
+            ->first();
+
+        if ($notificationExistante) {
+            return $notificationExistante;
+        }
+
         return self::create([
             'user_id' => $userId,
             'titre'   => $titre,

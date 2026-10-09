@@ -19,22 +19,31 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Type</label>
-                    <select name="type" class="form-select" required>
+                    <select name="type" id="typeProduit" class="form-select" required>
                         <option value="matiere_premiere" {{ $produit->type==='matiere_premiere' ? 'selected' : '' }}>Matière première</option>
                         <option value="produit_fini"     {{ $produit->type==='produit_fini'     ? 'selected' : '' }}>Produit fini</option>
                         <option value="emballage"        {{ $produit->type==='emballage'        ? 'selected' : '' }}>Emballage</option>
                     </select>
                 </div>
                 <div class="row g-2 mb-4">
-                    <div class="col-7">
-                        <label class="form-label fw-semibold">Prix unitaire (FCFA)</label>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Prix de vente (FCFA)</label>
                         <input type="number" name="prix_unitaire" step="1" min="0"
-                               class="form-control" value="{{ old('prix_unitaire',$produit->prix_unitaire) }}" required>
+                               class="form-control @error('prix_unitaire') is-invalid @enderror"
+                               value="{{ old('prix_unitaire',$produit->prix_unitaire) }}" required>
+                        @error('prix_unitaire')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="col-5">
-                        <label class="form-label fw-semibold">Unité</label>
-                        <input type="text" name="unite" class="form-control"
-                               value="{{ old('unite',$produit->unite) }}" required>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Prix de revient (FCFA)</label>
+                        <input type="number" name="prix_revient" step="1" min="0"
+                               class="form-control @error('prix_revient') is-invalid @enderror"
+                               value="{{ old('prix_revient',$produit->prix_revient) }}" placeholder="Optionnel">
+                        @error('prix_revient')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Unite</label>
+                        <input type="text" id="uniteProduit" name="unite" class="form-control"
+                               value="{{ old('unite',$produit->type === 'produit_fini' ? 'ballot' : $produit->unite) }}" required>
                     </div>
                 </div>
                 <div class="d-flex gap-2">
@@ -48,3 +57,18 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+const typeProduit = document.getElementById('typeProduit');
+const uniteProduit = document.getElementById('uniteProduit');
+function ajusterUniteProduit() {
+    const estProduitFini = typeProduit.value === 'produit_fini';
+    uniteProduit.readOnly = estProduitFini;
+    if (estProduitFini) uniteProduit.value = 'ballot';
+    else if (uniteProduit.value === 'ballot') uniteProduit.value = '';
+}
+typeProduit.addEventListener('change', ajusterUniteProduit);
+ajusterUniteProduit();
+</script>
+@endpush

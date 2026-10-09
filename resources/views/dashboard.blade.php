@@ -123,7 +123,7 @@
                         <div class="flex-grow-1">
                             <div class="fw-semibold" style="font-size:.85rem;">{{ $stock->produit->nom }}</div>
                             <div style="font-size:.75rem;color:#991B1B;">
-                                {{ $stock->quantite_disponible }} {{ $stock->produit->unite }} restant(s)
+                                {{ number_format($stock->quantite_disponible, 0, '.', '') }} {{ $stock->produit->type === 'produit_fini' ? 'ballot' : $stock->produit->unite }} restant(s)
                             </div>
                         </div>
                         <span class="badge bg-danger">!</span>
@@ -156,7 +156,7 @@
                         <tr>
                             <td>{{ $p->date_production->format('d/m/Y') }}</td>
                             <td>{{ $p->produit->nom }}</td>
-                            <td>{{ $p->quantite_produite }} {{ $p->produit->unite }}</td>
+                            <td>{{ number_format($p->quantite_produite, 0, '.', '') }} {{ $p->produit->unite }}</td>
                         </tr>
                         @empty
                         <tr><td colspan="3" class="text-center text-muted py-3">Aucune production</td></tr>
@@ -170,14 +170,31 @@
 
 </div>
 
-<div class="row mt-4">
+<div class="row g-4 mt-1">
     <div class="col-12">
-        <div class="card p-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="mb-0">Tendance des ventes (12 derniers mois)</h6>
-                <a href="{{ route('export.factures') }}" class="btn btn-sm btn-outline-primary">Exporter factures CSV</a>
+        <div class="table-card p-3 p-md-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div>
+                    <h5 class="fw-bold mb-1">Rapport des ventes</h5>
+                    <div class="text-muted small">Facturation et encaissements sur les 12 derniers mois</div>
+                </div>
+                <a href="{{ route('export.factures') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-download me-1"></i>Exporter les factures</a>
             </div>
-            <canvas id="salesTrendChart" height="100"></canvas>
+            <div style="height:320px; position:relative"><canvas id="salesTrendChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="table-card p-3 p-md-4 h-100">
+            <h6 class="fw-bold mb-1">Commandes validées</h6>
+            <div class="text-muted small mb-3">Nombre par mois</div>
+            <div style="height:280px; position:relative"><canvas id="ordersChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="table-card p-3 p-md-4 h-100">
+            <h6 class="fw-bold mb-1">Encaissements par mode</h6>
+            <div class="text-muted small mb-3">Répartition depuis janvier {{ now()->year }}</div>
+            <div style="height:280px; position:relative"><canvas id="paymentModesChart"></canvas></div>
         </div>
     </div>
 </div>
@@ -185,30 +202,48 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        (async function(){
-            const res = await fetch('{{ route('dashboard.trends.sales') }}');
-            const json = await res.json();
-            const ctx = document.getElementById('salesTrendChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: json.labels,
-                    datasets: [{
-                        label: 'CA (FCFA)',
-                        data: json.data,
-                        backgroundColor: 'rgba(13,110,253,0.1)',
-                        borderColor: 'rgba(13,110,253,1)',
-                        fill: true,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: { y: { beginAtZero: true } }
-                }
-            });
+        (async function () {
+            const money = value => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value) + ' FCFA';
+            try {
+                const response = await fetch('{{ route('dashboard.trends.sales') }}', { headers: { 'Accept': 'application/json' } });
+                if (!response.ok) throw new Error('Impossible de charger les statistiques.');
+                const report = await response.json();
+                const common = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 18 } } } };
+
+                new Chart(document.getElementById('salesTrendChart'), {
+                    type: 'line',
+                    data: { labels: report.labels, datasets: [
+                        { label: 'Montant facturé', data: report.facture, borderColor: '#E8650A', backgroundColor: 'rgba(232,101,10,.10)', fill: true, tension: .35, pointRadius: 3 },
+                        { label: 'Montant encaissé', data: report.encaisse, borderColor: '#198754', backgroundColor: 'rgba(25,135,84,.08)', fill: true, tension: .35, pointRadius: 3 }
+                    ] },
+                    options: { ...common, interaction: { intersect: false, mode: 'index' }, scales: {
+                        y: { beginAtZero: true, ticks: { callback: value => money(value) }, grid: { color: 'rgba(0,0,0,.06)' } },
+                        x: { grid: { display: false } }
+                    }, plugins: { ...common.plugins, tooltip: { callbacks: { label: context => context.dataset.label + ': ' + money(context.parsed.y) } } } }
+                });
+
+                new Chart(document.getElementById('ordersChart'), {
+                    type: 'bar',
+                    data: { labels: report.labels, datasets: [{ label: 'Commandes validées', data: report.commandes, backgroundColor: 'rgba(13,110,253,.72)', borderRadius: 6, maxBarThickness: 34 }] },
+                    options: { ...common, plugins: { ...common.plugins, legend: { display: false } }, scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(0,0,0,.06)' } },
+                        x: { grid: { display: false } }
+                    } }
+                });
+
+                const colors = ['#E8650A', '#198754', '#0D6EFD'];
+                new Chart(document.getElementById('paymentModesChart'), {
+                    type: 'doughnut',
+                    data: { labels: report.modes.labels, datasets: [{ data: report.modes.data, backgroundColor: colors, borderWidth: 0, hoverOffset: 7 }] },
+                    options: { ...common, cutout: '66%', plugins: { ...common.plugins, tooltip: { callbacks: { label: context => context.label + ': ' + money(context.parsed) } } } }
+                });
+            } catch (error) {
+                document.querySelectorAll('#salesTrendChart, #ordersChart, #paymentModesChart').forEach(canvas => {
+                    canvas.parentElement.innerHTML = '<div class="text-muted text-center py-5">' + error.message + '</div>';
+                });
+            }
         })();
     </script>
 @endpush
 
-</div>
 @endsection

@@ -74,7 +74,7 @@
                                             data-prix="{{ $p->prix_unitaire }}"
                                             data-stock="{{ $p->stock?->quantite_disponible ?? 0 }}"
                                             data-unite="{{ $p->unite }}">
-                                        {{ $p->nom }} ({{ $p->stock?->quantite_disponible ?? 0 }} {{ $p->unite }})
+                                        {{ $p->nom }} ({{ number_format($p->stock?->quantite_disponible ?? 0, 0, '.', '') }} {{ $p->unite }})
                                     </option>
                                 @endforeach
                             </select>
@@ -82,7 +82,7 @@
                         <div class="col-md-2">
                             <label class="form-label fw-semibold" style="font-size:.82rem;">Qté</label>
                             <input type="number" name="lignes[__IDX__][quantite]" class="form-control form-control-sm qte-input"
-                                   step="0.01" min="0.01" required>
+                                   step="1" min="1" required>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-semibold" style="font-size:.82rem;">Prix unitaire (FCFA)</label>

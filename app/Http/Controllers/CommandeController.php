@@ -62,7 +62,7 @@ class CommandeController extends Controller
             'idclient'             => 'required|exists:clients,idclient',
             'lignes'               => 'required|array|min:1',
             'lignes.*.idproduit'   => 'required|exists:produits,idproduit',
-            'lignes.*.quantite'    => 'required|numeric|min:0.01',
+            'lignes.*.quantite'    => 'required|integer|min:1',
             'lignes.*.prix_unitaire' => 'required|numeric|min:0',
         ]);
 
@@ -109,7 +109,7 @@ class CommandeController extends Controller
      */
     public function show(Commande $commande): View
     {
-        $commande->load(['client', 'lignes.produit', 'facture.paiement', 'livraison.livreur']);
+        $commande->load(['client', 'lignes.produit', 'facture.paiements', 'livraison.livreur']);
         return view('commandes.show', compact('commande'));
     }
 

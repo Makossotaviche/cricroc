@@ -10,9 +10,13 @@ namespace App\Http\Controllers;
 use App\Models\Facture;
 use App\Models\Paiement;
 use App\Models\NotificationInterne;
+use App\Models\ParametreFacturation;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Illuminate\Support\Str;
 
 class FactureController extends Controller
 {
@@ -24,11 +28,12 @@ class FactureController extends Controller
      */
     public function index(): View
     {
-        $factures = Facture::with(['commande.client', 'paiement'])
+        $factures = Facture::with(['commande.client'])->withSum('paiements', 'montant')
             ->latest()
             ->paginate(15);
+        $tauxTva = ParametreFacturation::tauxTvaActuel();
 
-        return view('factures.index', compact('factures'));
+        return view('factures.index', compact('factures', 'tauxTva'));
     }
 
     /**
@@ -38,7 +43,7 @@ class FactureController extends Controller
      */
     public function show(Facture $facture): View
     {
-        $facture->load(['commande.client', 'commande.lignes.produit', 'paiement']);
+        $facture->load(['commande.client', 'commande.lignes.produit', 'paiements']);
         return view('factures.show', compact('facture'));
     }
 
@@ -64,38 +69,58 @@ class FactureController extends Controller
             'mode'    => 'required|in:especes,mobile_money,virement',
         ]);
 
-        Paiement::create([
-            'montant'       => $validated['montant'],
-            'date_paiement' => now()->toDateString(),
-            'mode'          => $validated['mode'],
-            'idfacture'     => $facture->idfacture,
-        ]);
+        try {
+            $factureDevenuePayee = DB::transaction(function () use ($facture, $validated) {
+                $facture = Facture::whereKey($facture->idfacture)->lockForUpdate()->firstOrFail();
+                $dejaPaye = (float) $facture->paiements()->sum('montant');
+                $reste = max(0, (float) $facture->montant_total - $dejaPaye);
 
-        // Mise à jour du stock (sortie) après paiement confirmé
-        foreach ($facture->commande->lignes as $ligne) {
-            $stock = $ligne->produit->stock;
-            if ($stock) {
-                $stock->enregistrerMouvement('sortie', $ligne->quantite, 'Vente commande #'.$facture->idcommande);
-
-                // Notification rupture de stock si seuil atteint
-                if ($stock->estEnRupture()) {
-                    NotificationInterne::envoyerAuRole(
-                        'gestionnaire_stock',
-                        '⚠️ Rupture de stock',
-                        "Le produit \"{$ligne->produit->nom}\" est en dessous du seuil d'alerte ({$stock->quantite_disponible} {$ligne->produit->unite} restant).",
-                        'bi-exclamation-triangle',
-                        'danger',
-                        route('stock.index')
-                    );
+                if ($reste <= 0) {
+                    throw new \DomainException('Cette facture est déjà payée.');
                 }
-            }
-        }
+                if ((float) $validated['montant'] > $reste) {
+                    throw new \DomainException('Le montant dépasse le reste à payer (' . number_format($reste, 0, ',', ' ') . ' FCFA).');
+                }
 
-        // Notification paiement reçu
+                Paiement::create([
+                    'montant' => $validated['montant'],
+                    'date_paiement' => now()->toDateString(),
+                    'mode' => $validated['mode'],
+                    'idfacture' => $facture->idfacture,
+                ]);
+
+                $totalPaye = $dejaPaye + (float) $validated['montant'];
+                if ($dejaPaye <= 0) {
+                    $facture->load('commande.lignes.produit.stock');
+                    foreach ($facture->commande->lignes as $ligne) {
+                        $stock = $ligne->produit->stock;
+                        if ($stock) {
+                            $stock->enregistrerMouvement('sortie', $ligne->quantite, 'Vente commande #' . $facture->idcommande);
+                            if ($stock->estEnRupture()) {
+                                NotificationInterne::envoyerAuRole(
+                                    'gestionnaire_stock',
+                                    'Alerte rupture de stock',
+                                    "Le produit {$ligne->produit->nom} est sous le seuil d'alerte ({$stock->quantite_disponible} {$ligne->produit->unite} restant).",
+                                    'bi-exclamation-triangle',
+                                    'danger',
+                                    route('stock.index')
+                                );
+                            }
+                        }
+                    }
+                }
+
+                return $totalPaye >= (float) $facture->montant_total;
+            });
+        } catch (\DomainException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
         NotificationInterne::envoyerAuRole(
             'agent_commercial',
-            '💰 Paiement reçu',
-            "Facture #{$facture->idfacture} payée — " .
+            'Paiement reçu',
+            "Paiement enregistré pour la facture #{$facture->idfacture} — " .
             number_format($validated['montant'], 0, ',', ' ') . ' FCFA (' . ucfirst(str_replace('_', ' ', $validated['mode'])) . ').',
             'bi-cash-coin',
             'success',
@@ -103,7 +128,9 @@ class FactureController extends Controller
         );
 
         return redirect()->route('factures.show', $facture)
-            ->with('success', 'Paiement enregistré et stock mis à jour.');
+            ->with('success', $factureDevenuePayee
+                ? 'Paiement enregistré. Facture réglée et stock mis à jour.'
+                : 'Paiement partiel enregistré dans l’historique de la facture.');
     }
 
     /**
@@ -114,8 +141,30 @@ class FactureController extends Controller
      */
     public function imprimer(Facture $facture): View
     {
-        $facture->load(['commande.client', 'commande.lignes.produit', 'paiement']);
+        $facture->load(['commande.client', 'commande.lignes.produit', 'paiements']);
         return view('factures.imprimer', compact('facture'));
+    }
+
+    public function pdf(Facture $facture)
+    {
+        $facture->load(['commande.client', 'commande.lignes.produit', 'paiements']);
+
+        return Pdf::loadView('factures.pdf', compact('facture'))
+            ->setPaper('a4')
+            ->download('facture-' . Str::slug($facture->numero_facture) . '.pdf');
+    }
+
+    public function updateTva(Request $request): RedirectResponse
+    {
+        abort_unless(auth()->user()->isAdmin(), 403);
+
+        $validated = $request->validate([
+            'taux_tva' => 'required|numeric|min:0|max:100',
+        ]);
+
+        ParametreFacturation::enregistrerTauxTva((float) $validated['taux_tva']);
+
+        return redirect()->route('factures.index')->with('success', 'Taux de TVA mis à jour.');
     }
 
     /**
@@ -130,10 +179,11 @@ class FactureController extends Controller
 
         $callback = function () {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['idfacture', 'idcommande', 'date_facture', 'montant_total', 'etat_paiement']);
-            foreach (Facture::with('paiement')->cursor() as $f) {
-                $etat = $f->paiement ? 'payee' : 'non_payee';
-                fputcsv($handle, [$f->idfacture, $f->idcommande, $f->date_facture, $f->montant_total, $etat]);
+            fputcsv($handle, ['numero_facture', 'idcommande', 'date_facture', 'montant_ht', 'taux_tva', 'montant_tva', 'montant_ttc', 'etat_paiement']);
+            foreach (Facture::withSum('paiements', 'montant')->cursor() as $f) {
+                $paye = (float) ($f->paiements_sum_montant ?? 0);
+                $etat = $paye >= (float) $f->montant_total ? 'payee' : ($paye > 0 ? 'partiellement_payee' : 'non_payee');
+                fputcsv($handle, [$f->numero_facture, $f->idcommande, $f->date_facture, $f->montant_ht, $f->taux_tva, $f->montant_tva, $f->montant_total, $etat]);
             }
             fclose($handle);
         };
@@ -141,3 +191,5 @@ class FactureController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 }
+
+

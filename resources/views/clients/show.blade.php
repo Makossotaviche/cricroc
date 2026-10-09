@@ -31,7 +31,7 @@
             <ul class="list-unstyled mb-0">
                 <li class="mb-2"><i class="bi bi-person-badge me-2 text-muted"></i>{{ $client->type_client ?? 'Particulier' }}</li>
                 @if($client->prenoms)<li class="mb-2"><i class="bi bi-person me-2 text-muted"></i>{{ $client->prenoms }}</li>@endif
-                @if($client->raison_sociale)<li class="mb-2"><i class="bi bi-building me-2 text-muted"></i>{{ $client->raison_sociale }}</li>@endif
+                @if($client->numero_piece_identite)<li class="mb-2"><i class="bi bi-card-heading me-2 text-muted"></i>CNI : {{ $client->numero_piece_identite }}</li>@endif
                 <li class="mb-2"><i class="bi bi-telephone me-2 text-muted"></i>{{ $client->contact ?? 'Non renseigne' }}</li>
                 @if($client->telephone_secondaire)<li class="mb-2"><i class="bi bi-telephone-plus me-2 text-muted"></i>{{ $client->telephone_secondaire }}</li>@endif
                 @if($client->email)<li class="mb-2"><i class="bi bi-envelope me-2 text-muted"></i>{{ $client->email }}</li>@endif
@@ -43,20 +43,6 @@
             </ul>
         </div>
 
-        <div class="table-card p-4 mt-4">
-            <h6 class="fw-bold mb-3">
-                <i class="bi bi-info-circle me-2 text-muted"></i>Informations complementaires
-            </h6>
-            <ul class="list-unstyled mb-0">
-                <li class="mb-2"><span class="text-muted">Categorie :</span> <span class="fw-semibold">{{ $client->categorie ?? 'Non renseignee' }}</span></li>
-                <li class="mb-2"><span class="text-muted">Limite credit :</span> <span class="fw-semibold">{{ $client->limite_credit ? number_format($client->limite_credit, 0, ',', ' ') . ' FCFA' : 'Non renseignee' }}</span></li>
-                <li class="mb-2"><span class="text-muted">Paiement :</span> <span class="fw-semibold">{{ $client->condition_paiement ?? 'Non renseigne' }}</span></li>
-                <li><span class="text-muted">Remise :</span> <span class="fw-semibold">{{ $client->remise_defaut ?? 0 }}%</span></li>
-            </ul>
-            @if($client->notes)
-                <div class="border-top mt-3 pt-3 small text-muted">{{ $client->notes }}</div>
-            @endif
-        </div>
     </div>
 
     <div class="col-md-8">
@@ -67,13 +53,20 @@
             <div class="table-responsive">
                 <table class="table mb-0">
                     <thead>
-                        <tr><th>#</th><th>Date</th><th>Montant</th><th>Statut</th><th>Facture</th></tr>
+                        <tr><th>#</th><th>Date</th><th>Articles commandés</th><th>Montant</th><th>Statut</th><th>Facture</th></tr>
                     </thead>
                     <tbody>
                         @forelse($client->commandes as $cmd)
                         <tr>
                             <td><a href="{{ route('commandes.show', $cmd) }}">#{{ $cmd->idcommande }}</a></td>
                             <td>{{ $cmd->date_commande->format('d/m/Y') }}</td>
+                            <td>
+                                @forelse($cmd->lignes as $ligne)
+                                    <div>{{ $ligne->produit->nom }} × {{ number_format($ligne->quantite, 0, '.', '') }}</div>
+                                @empty
+                                    <span class="text-muted">Aucun article</span>
+                                @endforelse
+                            </td>
                             <td>{{ number_format($cmd->montant_total, 0, ',', ' ') }} FCFA</td>
                             <td>
                                 <span class="badge badge-{{ $cmd->statut }} px-2 py-1" style="border-radius:6px;">
@@ -91,7 +84,7 @@
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="5" class="text-center text-muted py-3">Aucune commande</td></tr>
+                        <tr><td colspan="6" class="text-center text-muted py-3">Aucune commande</td></tr>
                         @endforelse
                     </tbody>
                 </table>

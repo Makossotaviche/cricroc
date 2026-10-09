@@ -322,12 +322,7 @@
                 <div style="font-size:.7rem;color:rgba(255,255,255,.4);">{{ auth()->user()->role_libelle }}</div>
             </div>
         </div>
-        <form method="POST" action="{{ route('logout') }}" class="mt-2">
-            @csrf
-            <button type="submit" class="btn btn-sm btn-outline-secondary w-100" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.2);">
-                <i class="bi bi-box-arrow-left me-1"></i>Déconnexion
-            </button>
-        </form>
+
     </div>
 </nav>
 <!-- ═══════════════════════ END SIDEBAR ═══════════════════════ -->
@@ -352,6 +347,23 @@
                           style="font-size:.6rem;display:none;">0</span>
                 </a>
             </div>
+            <div class="d-none d-sm-flex align-items-center gap-2 me-1">
+                <span class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary fw-bold"
+                      style="width:34px;height:34px;">
+                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                </span>
+                <span class="text-end" style="line-height:1.15;">
+                    <span class="d-block fw-semibold" style="font-size:.82rem;">{{ auth()->user()->name }}</span>
+                    <span class="d-block text-muted" style="font-size:.7rem;">{{ auth()->user()->role_libelle }}</span>
+                </span>
+            </div>
+            <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                @csrf
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="Déconnexion">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span class="d-none d-md-inline ms-1">Déconnexion</span>
+                </button>
+            </form>
             @yield('topbar-actions')
         </div>
     </div>

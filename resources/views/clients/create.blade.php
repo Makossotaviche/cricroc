@@ -274,15 +274,6 @@
     <div class="client-form-wrap">
         <div class="row g-0">
             <aside class="col-lg-3 client-side-panel p-4 d-flex flex-column justify-content-between gap-4">
-                <div class="text-center">
-                    <div class="client-clipboard mx-auto">
-                        <span class="client-avatar"><i class="bi bi-person-fill"></i></span>
-                        <div class="client-paper-line"></div>
-                        <div class="client-paper-line" style="width:72%;"></div>
-                        <div class="client-paper-line" style="width:52%;"></div>
-                    </div>
-                </div>
-
                 <div class="client-help-card p-3">
                     <div class="d-flex align-items-center gap-2 fw-bold mb-2" style="color:var(--form-ink);">
                         <i class="bi bi-info-circle-fill text-warning fs-4"></i>
@@ -291,7 +282,6 @@
                     <p class="mb-0 text-muted small">Veuillez remplir tous les champs obligatoires marques d'un <span class="text-danger fw-bold">*</span>.</p>
                 </div>
 
-                <div class="client-store-visual d-none d-lg-block"></div>
             </aside>
 
             <div class="col-lg-9 client-form-main">
@@ -332,11 +322,12 @@
                                 </div>
                             </div>
                             <div class="col-md-6 client-field">
-                                <label class="form-label fw-semibold">Raison sociale (pour societe)</label>
+                                <label class="form-label fw-semibold">CNI</label>
                                 <div class="input-group client-input-group">
-                                    <span class="input-group-text"><i class="bi bi-building"></i></span>
-                                    <input type="text" class="form-control client-input" name="raison_sociale"
-                                           value="{{ old('raison_sociale') }}" placeholder="Entrez la raison sociale">
+                                    <span class="input-group-text"><i class="bi bi-card-heading"></i></span>
+                                    <input type="text" name="numero_piece_identite" class="form-control client-input @error('numero_piece_identite') is-invalid @enderror"
+                                           value="{{ old('numero_piece_identite') }}" placeholder="Numéro de CNI">
+                                    @error('numero_piece_identite')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
                             </div>
                             <div class="col-md-6 client-field">
@@ -371,7 +362,7 @@
                                 <div class="input-group client-input-group">
                                     <span class="input-group-text"><i class="bi bi-telephone-fill"></i></span>
                                     <input type="text" name="contact" class="form-control client-input @error('contact') is-invalid @enderror"
-                                           value="{{ old('contact') }}" placeholder="+225 07 12 34 56 78" required>
+                                           value="{{ old('contact') }}" placeholder="+242 06 123 45 67" required>
                                     @error('contact')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
                             </div>
@@ -380,7 +371,7 @@
                                 <div class="input-group client-input-group">
                                     <span class="input-group-text"><i class="bi bi-telephone"></i></span>
                                     <input type="text" class="form-control client-input" name="telephone_secondaire"
-                                           value="{{ old('telephone_secondaire') }}" placeholder="+225 01 23 45 67 89">
+                                           value="{{ old('telephone_secondaire') }}" placeholder="+242 05 123 45 67">
                                 </div>
                             </div>
                             <div class="col-md-6 client-field">
@@ -396,7 +387,7 @@
                                 <div class="input-group client-input-group">
                                     <span class="input-group-text"><i class="bi bi-whatsapp"></i></span>
                                     <input type="text" class="form-control client-input" name="whatsapp"
-                                           value="{{ old('whatsapp') }}" placeholder="+225 07 12 34 56 78">
+                                           value="{{ old('whatsapp') }}" placeholder="+242 06 123 45 67">
                                 </div>
                             </div>
                         </div>
@@ -413,10 +404,7 @@
                                 <div class="input-group client-input-group">
                                     <span class="input-group-text"><i class="bi bi-flag-fill"></i></span>
                                     <select class="form-select client-input" name="pays">
-                                        <option @selected(old('pays', "Cote d'Ivoire") === "Cote d'Ivoire")>Cote d'Ivoire</option>
-                                        <option @selected(old('pays') === 'Senegal')>Senegal</option>
-                                        <option @selected(old('pays') === 'Mali')>Mali</option>
-                                        <option @selected(old('pays') === 'Burkina Faso')>Burkina Faso</option>
+                                        <option @selected(old('pays', 'Congo-Brazzaville') === 'Congo-Brazzaville')>Congo-Brazzaville</option>
                                     </select>
                                 </div>
                             </div>
@@ -425,10 +413,10 @@
                                 <div class="input-group client-input-group">
                                     <span class="input-group-text"><i class="bi bi-buildings-fill"></i></span>
                                     <select class="form-select client-input" name="ville">
-                                        <option @selected(old('ville', 'Abidjan') === 'Abidjan')>Abidjan</option>
-                                        <option @selected(old('ville') === 'Bouake')>Bouake</option>
-                                        <option @selected(old('ville') === 'Yamoussoukro')>Yamoussoukro</option>
-                                        <option @selected(old('ville') === 'San Pedro')>San Pedro</option>
+                                        <option @selected(old('ville', 'Brazzaville') === 'Brazzaville')>Brazzaville</option>
+                                        <option @selected(old('ville') === 'Pointe-Noire')>Pointe-Noire</option>
+                                        <option @selected(old('ville') === 'Dolisie')>Dolisie</option>
+                                        <option @selected(old('ville') === 'Nkayi')>Nkayi</option>
                                     </select>
                                 </div>
                             </div>
@@ -448,58 +436,6 @@
                                            value="{{ old('adresse') }}" placeholder="Entrez l'adresse complete du client">
                                     @error('adresse')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="client-section">
-                        <div class="client-section-heading">
-                            <span class="client-section-icon"><i class="bi bi-info-circle-fill"></i></span>
-                            Informations complementaires
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-6 client-field">
-                                <label class="form-label fw-semibold">Groupe / Categorie</label>
-                                <div class="input-group client-input-group">
-                                    <span class="input-group-text"><i class="bi bi-tag-fill"></i></span>
-                                    <select class="form-select client-input" name="categorie">
-                                        <option @selected(old('categorie', 'Client regulier') === 'Client regulier')>Client regulier</option>
-                                        <option @selected(old('categorie') === 'Client VIP')>Client VIP</option>
-                                        <option @selected(old('categorie') === 'Nouveau prospect')>Nouveau prospect</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6 client-field">
-                                <label class="form-label fw-semibold">Limite de credit (FCFA)</label>
-                                <div class="input-group client-input-group">
-                                    <span class="input-group-text"><i class="bi bi-cash-coin"></i></span>
-                                    <input type="number" class="form-control client-input" name="limite_credit"
-                                           value="{{ old('limite_credit', 500000) }}" min="0">
-                                </div>
-                            </div>
-                            <div class="col-md-6 client-field">
-                                <label class="form-label fw-semibold">Condition de paiement</label>
-                                <div class="input-group client-input-group">
-                                    <span class="input-group-text"><i class="bi bi-calendar2-week-fill"></i></span>
-                                    <select class="form-select client-input" name="condition_paiement">
-                                        <option @selected(old('condition_paiement', 'Comptant') === 'Comptant')>Comptant</option>
-                                        <option @selected(old('condition_paiement') === '7 jours')>7 jours</option>
-                                        <option @selected(old('condition_paiement') === '15 jours')>15 jours</option>
-                                        <option @selected(old('condition_paiement') === '30 jours')>30 jours</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6 client-field">
-                                <label class="form-label fw-semibold">Remise par defaut (%)</label>
-                                <div class="input-group client-input-group">
-                                    <span class="input-group-text"><i class="bi bi-percent"></i></span>
-                                    <input type="number" class="form-control client-input" name="remise_defaut"
-                                           value="{{ old('remise_defaut', 0) }}" min="0" max="100">
-                                </div>
-                            </div>
-                            <div class="col-12 client-field">
-                                <label class="form-label fw-semibold">Notes</label>
-                                <textarea class="form-control client-input" name="notes" rows="3" placeholder="Ajoutez une note (optionnel)">{{ old('notes') }}</textarea>
                             </div>
                         </div>
                     </section>

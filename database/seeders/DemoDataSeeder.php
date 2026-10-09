@@ -27,8 +27,8 @@ class DemoDataSeeder extends Seeder
     {
         // Récupère les produits déjà créés par DatabaseSeeder. Ces références
         // permettent de simuler des productions et des commandes de démonstration.
-        $chips_paquet = Produit::where('nom', 'like', '%Paquet%')->first();
-        $chips_ballot = Produit::where('nom', 'like', '%Ballot%')->first();
+        $chips_50f = Produit::where('nom', 'like', '%Chips Cric Croc Fromage (50f)%')->first();
+        $chips_100f = Produit::where('nom', 'like', '%Chips Cric Croc Fromage (100f)%')->first();
         $semoule      = Produit::where('nom', 'like', '%Semoule%')->first();
         $mais         = Produit::where('nom', 'like', '%Maïs%')->first();
         $huile        = Produit::where('nom', 'like', '%Huile%')->first();
@@ -36,7 +36,7 @@ class DemoDataSeeder extends Seeder
         $sachet       = Produit::where('nom', 'like', '%Sachets%')->first();
 
         // On arrête si les produits finis nécessaires n'existent pas encore.
-        if (!$chips_paquet || !$chips_ballot) return;
+        if (!$chips_50f || !$chips_100f) return;
 
         $agent    = User::where('role', 'agent_commercial')->first();
         $livreur  = User::where('role', 'livreur')->first();
@@ -46,9 +46,9 @@ class DemoDataSeeder extends Seeder
 
         // ── Productions de démonstration ────────────────────────────
         $prods = [
-            ['produit' => $chips_paquet, 'qte' => 500, 'date' => now()->subDays(10)],
-            ['produit' => $chips_paquet, 'qte' => 300, 'date' => now()->subDays(5)],
-            ['produit' => $chips_ballot, 'qte' => 20,  'date' => now()->subDays(3)],
+            ['produit' => $chips_50f, 'qte' => 500, 'date' => now()->subDays(10)],
+            ['produit' => $chips_50f, 'qte' => 300, 'date' => now()->subDays(5)],
+            ['produit' => $chips_100f, 'qte' => 20,  'date' => now()->subDays(3)],
         ];
 
         foreach ($prods as $p) {
@@ -91,8 +91,8 @@ class DemoDataSeeder extends Seeder
                 'client'  => $clients[0],
                 'statut'  => 'validee',
                 'lignes'  => [
-                    ['produit' => $chips_paquet, 'qte' => 50, 'prix' => 500],
-                    ['produit' => $chips_ballot, 'qte' => 5,  'prix' => 10000],
+                    ['produit' => $chips_50f, 'qte' => 50, 'prix' => 500],
+                    ['produit' => $chips_100f, 'qte' => 5,  'prix' => 10000],
                 ],
                 'paiement'  => true,
                 'livraison' => 'livree',
@@ -103,7 +103,7 @@ class DemoDataSeeder extends Seeder
                 'client'  => $clients[1] ?? $clients[0],
                 'statut'  => 'validee',
                 'lignes'  => [
-                    ['produit' => $chips_paquet, 'qte' => 100, 'prix' => 500],
+                    ['produit' => $chips_50f, 'qte' => 100, 'prix' => 500],
                 ],
                 'paiement'  => false,
                 'livraison' => 'en_cours',
@@ -114,7 +114,7 @@ class DemoDataSeeder extends Seeder
                 'client'  => $clients[2] ?? $clients[0],
                 'statut'  => 'en_attente',
                 'lignes'  => [
-                    ['produit' => $chips_ballot, 'qte' => 10, 'prix' => 10000],
+                    ['produit' => $chips_100f, 'qte' => 10, 'prix' => 10000],
                 ],
                 'paiement'  => false,
                 'livraison' => null,
@@ -125,7 +125,7 @@ class DemoDataSeeder extends Seeder
                 'client'  => $clients[3] ?? $clients[0],
                 'statut'  => 'rejetee',
                 'lignes'  => [
-                    ['produit' => $chips_paquet, 'qte' => 200, 'prix' => 500],
+                    ['produit' => $chips_50f, 'qte' => 200, 'prix' => 500],
                 ],
                 'paiement'  => false,
                 'livraison' => null,
@@ -136,8 +136,8 @@ class DemoDataSeeder extends Seeder
                 'client'  => $clients[0],
                 'statut'  => 'en_attente',
                 'lignes'  => [
-                    ['produit' => $chips_paquet, 'qte' => 30, 'prix' => 500],
-                    ['produit' => $chips_ballot, 'qte' => 2,  'prix' => 10000],
+                    ['produit' => $chips_50f, 'qte' => 30, 'prix' => 500],
+                    ['produit' => $chips_100f, 'qte' => 2,  'prix' => 10000],
                 ],
                 'paiement'  => false,
                 'livraison' => null,

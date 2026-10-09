@@ -101,7 +101,7 @@
                         @foreach($commande->lignes as $ligne)
                         <tr>
                             <td>{{ $ligne->produit->nom }}</td>
-                            <td>{{ $ligne->quantite }} {{ $ligne->produit->unite }}</td>
+                            <td>{{ number_format($ligne->quantite, 0, '.', '') }} {{ $ligne->produit->unite }}</td>
                             <td>{{ number_format($ligne->prix_unitaire,0,',',' ') }} FCFA</td>
                             <td class="fw-bold">{{ number_format($ligne->sous_total,0,',',' ') }} FCFA</td>
                         </tr>

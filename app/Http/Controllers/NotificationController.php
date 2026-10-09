@@ -8,6 +8,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\NotificationInterne;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
@@ -23,7 +24,7 @@ class NotificationController extends Controller
      */
     public function index(): View
     {
-        $notifications = NotificationInterne::where('user_id', auth()->id())
+        $notifications = NotificationInterne::whereIn('id', $this->idsNotificationsUniques())
             ->latest()
             ->paginate(20);
 
@@ -100,11 +101,11 @@ class NotificationController extends Controller
      */
     public function compteur(): JsonResponse
     {
-        $count = NotificationInterne::where('user_id', auth()->id())
+        $count = NotificationInterne::whereIn('id', $this->idsNotificationsUniques())
             ->where('lue', false)
             ->count();
 
-        $recentes = NotificationInterne::where('user_id', auth()->id())
+        $recentes = NotificationInterne::whereIn('id', $this->idsNotificationsUniques())
             ->where('lue', false)
             ->latest()
             ->take(5)
@@ -114,5 +115,14 @@ class NotificationController extends Controller
             'count'   => $count,
             'recentes'=> $recentes,
         ]);
+    }
+
+    /** Retourne l'identifiant le plus récent pour chaque notification identique de l'utilisateur. */
+    private function idsNotificationsUniques()
+    {
+        return DB::table('notifications_internes')
+            ->selectRaw('MAX(id)')
+            ->where('user_id', auth()->id())
+            ->groupBy('user_id', 'titre', 'message', 'lien');
     }
 }

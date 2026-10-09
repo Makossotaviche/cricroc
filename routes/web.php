@@ -50,7 +50,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/stock/{stock}/entree',       [StockController::class, 'entree'])->name('stock.entree');
     Route::post('/stock/{stock}/sortie',       [StockController::class, 'sortie'])->name('stock.sortie');
     Route::patch('/stock/{stock}/seuil',       [StockController::class, 'updateSeuil'])->name('stock.seuil');
-    Route::get('/exports/stock', [StockController::class, 'exportCsv'])->name('export.stock');
+    Route::post('/stock/{stock}/inventaire',   [StockController::class, 'inventaire'])->name('stock.inventaire');
+    Route::get('/exports/stock', [StockController::class, 'exportExcel'])->name('export.stock');
+    Route::get('/exports/stock/mouvements', [StockController::class, 'exportMouvementsExcel'])->name('export.stock.mouvements');
 
     // Commandes
     Route::resource('commandes', CommandeController::class)->except(['edit', 'update', 'destroy']);
@@ -59,8 +61,10 @@ Route::middleware('auth')->group(function () {
 
     // Factures
     Route::get('/factures',                         [FactureController::class, 'index'])->name('factures.index');
+    Route::get('/factures/{facture}/pdf',            [FactureController::class, 'pdf'])->name('factures.pdf');
     Route::get('/factures/{facture}',               [FactureController::class, 'show'])->name('factures.show');
     Route::get('/factures/{facture}/imprimer',      [FactureController::class, 'imprimer'])->name('factures.imprimer');
+    Route::patch('/factures/parametres/tva', [FactureController::class, 'updateTva'])->name('factures.tva');
     Route::post('/factures/{facture}/paiement',     [FactureController::class, 'enregistrerPaiement'])->name('factures.paiement');
     Route::get('/exports/factures', [FactureController::class, 'exportCsv'])->name('export.factures');
 

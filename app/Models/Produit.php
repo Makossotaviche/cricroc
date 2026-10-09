@@ -20,6 +20,7 @@ class Produit extends Model
         'nom',
         'type',
         'prix_unitaire',
+        'prix_revient',
         'unite',
     ];
 

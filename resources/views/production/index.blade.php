@@ -31,7 +31,7 @@
                     <td class="text-muted">#{{ $p->idproduction }}</td>
                     <td>{{ $p->date_production->format('d/m/Y') }}</td>
                     <td><strong>{{ $p->produit->nom }}</strong></td>
-                    <td>{{ $p->quantite_produite }} {{ $p->produit->unite }}</td>
+                    <td>{{ number_format($p->quantite_produite, 0, '.', '') }} {{ $p->produit->unite }}</td>
                     <td>
                         <a href="{{ route('production.show', $p) }}" class="btn btn-sm btn-light">
                             <i class="bi bi-eye"></i>

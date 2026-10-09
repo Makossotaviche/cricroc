@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
 
 class Commande extends Model
 {
@@ -63,13 +64,34 @@ class Commande extends Model
      */
     public function valider(): Facture
     {
-        $this->statut = 'validee';
-        $this->save();
+        return DB::transaction(function () {
+            $commande = static::whereKey($this->getKey())->lockForUpdate()->firstOrFail();
+            $commande->statut = 'validee';
+            $commande->save();
 
-        return $this->facture()->firstOrCreate([
-            'date_facture'  => now()->toDateString(),
-            'montant_total' => $this->montant_total,
-        ]);
+            $factureExistante = $commande->facture()->first();
+            if ($factureExistante) {
+                return $factureExistante;
+            }
+
+            $montantHt = round((float) $commande->montant_total, 2);
+            $tauxTva = ParametreFacturation::tauxTvaActuel();
+            $montantTva = round($montantHt * $tauxTva / 100, 2);
+
+            $facture = $commande->facture()->create([
+                'numero_facture' => null,
+                'date_facture' => now()->toDateString(),
+                'montant_ht' => $montantHt,
+                'taux_tva' => $tauxTva,
+                'montant_tva' => $montantTva,
+                'montant_total' => $montantHt + $montantTva,
+            ]);
+
+            $facture->numero_facture = sprintf('FAC-%s-%06d', $facture->date_facture->format('Y'), $facture->idfacture);
+            $facture->save();
+
+            return $facture;
+        });
     }
 
     public function getStatutLibelleAttribute(): string

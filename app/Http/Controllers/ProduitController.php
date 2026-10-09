@@ -24,7 +24,22 @@ class ProduitController extends Controller
      */
     public function index(): View
     {
-        $produits = Produit::with('stock')->orderBy('type')->orderBy('nom')->paginate(20);
+        $query = Produit::with('stock')->orderBy('type')->orderBy('nom');
+        $recherche = trim((string) request('recherche', ''));
+        $categorie = request('categorie');
+
+        if ($recherche !== '') {
+            $query->where(function ($produitQuery) use ($recherche) {
+                $produitQuery->where('nom', 'like', "%{$recherche}%")
+                    ->orWhere('unite', 'like', "%{$recherche}%");
+            });
+        }
+
+        if (in_array($categorie, ['matiere_premiere', 'produit_fini', 'emballage'], true)) {
+            $query->where('type', $categorie);
+        }
+
+        $produits = $query->paginate(20)->withQueryString();
         return view('produits.index', compact('produits'));
     }
 
@@ -56,16 +71,22 @@ class ProduitController extends Controller
             'nom'           => 'required|string|max:255',
             'type'          => 'required|in:matiere_premiere,produit_fini,emballage',
             'prix_unitaire' => 'required|numeric|min:0',
+            'prix_revient'  => 'nullable|numeric|min:0',
             'unite'         => 'required|string|max:50',
-            'stock_initial' => 'nullable|numeric|min:0',
-            'seuil_alerte'  => 'nullable|numeric|min:0',
+            'stock_initial' => 'nullable|integer|min:0',
+            'seuil_alerte'  => 'nullable|integer|min:0',
         ]);
 
         DB::transaction(function () use ($validated) {
+            if ($validated['type'] === 'produit_fini') {
+                $validated['unite'] = 'ballot';
+            }
+
             $produit = Produit::create([
                 'nom'           => $validated['nom'],
                 'type'          => $validated['type'],
                 'prix_unitaire' => $validated['prix_unitaire'],
+                'prix_revient'  => $validated['prix_revient'] ?? null,
                 'unite'         => $validated['unite'],
             ]);
 
@@ -99,8 +120,13 @@ class ProduitController extends Controller
             'nom'           => 'required|string|max:255',
             'type'          => 'required|in:matiere_premiere,produit_fini,emballage',
             'prix_unitaire' => 'required|numeric|min:0',
+            'prix_revient'  => 'nullable|numeric|min:0',
             'unite'         => 'required|string|max:50',
         ]);
+
+        if ($validated['type'] === 'produit_fini') {
+            $validated['unite'] = 'ballot';
+        }
 
         $produit->update($validated);
 

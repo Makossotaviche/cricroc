@@ -23,7 +23,38 @@ class ClientController extends Controller
      */
     public function index(): View
     {
-        $clients = Client::withCount('commandes')->latest()->paginate(15);
+        $query = Client::withCount('commandes');
+        $recherche = trim((string) request('recherche', ''));
+        $typeClient = request('type_client');
+        $avecCommandes = request('avec_commandes');
+
+        if ($recherche !== '') {
+            $query->where(function ($clientQuery) use ($recherche) {
+                $clientQuery->where('nom', 'like', "%{$recherche}%")
+                    ->orWhere('prenoms', 'like', "%{$recherche}%")
+                    ->orWhere('code_client', 'like', "%{$recherche}%")
+                    ->orWhere('contact', 'like', "%{$recherche}%")
+                    ->orWhere('telephone_secondaire', 'like', "%{$recherche}%")
+                    ->orWhere('email', 'like', "%{$recherche}%")
+                    ->orWhere('whatsapp', 'like', "%{$recherche}%")
+                    ->orWhere('numero_piece_identite', 'like', "%{$recherche}%")
+                    ->orWhere('adresse', 'like', "%{$recherche}%")
+                    ->orWhere('ville', 'like', "%{$recherche}%")
+                    ->orWhere('commune', 'like', "%{$recherche}%");
+            });
+        }
+
+        if (in_array($typeClient, ['Particulier', 'Societe'], true)) {
+            $query->where('type_client', $typeClient);
+        }
+
+        if ($avecCommandes === 'oui') {
+            $query->has('commandes');
+        } elseif ($avecCommandes === 'non') {
+            $query->doesntHave('commandes');
+        }
+
+        $clients = $query->latest()->paginate(15)->withQueryString();
         return view('clients.index', compact('clients'));
     }
 
@@ -62,7 +93,7 @@ class ClientController extends Controller
      */
     public function show(Client $client): View
     {
-        $client->load(['commandes.facture', 'commandes.livraison']);
+        $client->load(['commandes.facture', 'commandes.livraison', 'commandes.lignes.produit']);
         return view('clients.show', compact('client'));
     }
 

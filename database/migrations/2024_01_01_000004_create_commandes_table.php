@@ -20,7 +20,7 @@ return new class extends Migration
 
         Schema::create('lignes_commande', function (Blueprint $table) {
             $table->id('idligne');
-            $table->decimal('quantite', 10, 2);
+            $table->unsignedInteger('quantite');
             $table->decimal('prix_unitaire', 10, 2);
             $table->unsignedBigInteger('idcommande');
             $table->unsignedBigInteger('idproduit');

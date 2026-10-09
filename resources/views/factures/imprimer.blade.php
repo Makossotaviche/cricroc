@@ -50,19 +50,19 @@
         <div class="logo">CRIC CROC</div>
         <div class="company-info">
             Pointe-Noire, République du Congo<br>
-            Tél : +242 06 XXX XXXX<br>
-            Email : contact@cricroc.cg
         </div>
     </div>
     <div class="facture-title">
         <h2>FACTURE</h2>
-        <div class="num">#{{ str_pad($facture->idfacture, 6, '0', STR_PAD_LEFT) }}</div>
+            <div class="num">{{ $facture->numero_facture }}</div>
         <div style="color:#888;font-size:.85rem;margin-top:4px;">
             Date : {{ $facture->date_facture->format('d/m/Y') }}
         </div>
         <div style="margin-top:6px;">
-            @if($facture->paiement)
+            @if($facture->estPayee())
                 <span class="badge-paid">✔ Payée</span>
+            @elseif($facture->montantPaye() > 0)
+                <span class="badge-unpaid">Partiellement payée</span>
             @else
                 <span class="badge-unpaid">⏳ En attente de paiement</span>
             @endif
@@ -78,7 +78,6 @@
         <p>
             <strong>Cric Croc SARL</strong><br>
             Pointe-Noire, Congo<br>
-            RCCM : XXX-XXX-XXXX
         </p>
     </div>
     <div class="partie">
@@ -111,13 +110,15 @@
         @foreach($facture->commande->lignes as $ligne)
         <tr>
             <td>{{ $ligne->produit->nom }}</td>
-            <td>{{ $ligne->quantite }} {{ $ligne->produit->unite }}</td>
+            <td>{{ number_format($ligne->quantite, 0, '.', '') }} {{ $ligne->produit->unite }}</td>
             <td>{{ number_format($ligne->prix_unitaire, 0, ',', ' ') }} FCFA</td>
             <td><strong>{{ number_format($ligne->sous_total, 0, ',', ' ') }} FCFA</strong></td>
         </tr>
         @endforeach
     </tbody>
     <tfoot>
+        <tr><td colspan="3" style="text-align:right;">Total HT</td><td>{{ number_format($facture->montant_ht ?? $facture->montant_total, 0, ',', ' ') }} FCFA</td></tr>
+        <tr><td colspan="3" style="text-align:right;">TVA ({{ number_format($facture->taux_tva ?? 0, 2, ',', ' ') }} %)</td><td>{{ number_format($facture->montant_tva ?? 0, 0, ',', ' ') }} FCFA</td></tr>
         <tr class="total-row">
             <td colspan="3" style="text-align:right;text-transform:uppercase;letter-spacing:1px;">Total TTC</td>
             <td style="font-size:1.1rem;">{{ number_format($facture->montant_total, 0, ',', ' ') }} FCFA</td>
@@ -125,11 +126,13 @@
     </tfoot>
 </table>
 
-@if($facture->paiement)
+@if($facture->paiements->isNotEmpty())
 <div style="background:#F0FDF4;border-left:4px solid #22C55E;padding:10px 15px;border-radius:6px;margin-bottom:20px;">
-    <strong>Paiement reçu le {{ $facture->paiement->date_paiement->format('d/m/Y') }}</strong> —
-    {{ number_format($facture->paiement->montant,0,',',' ') }} FCFA
-    ({{ ucfirst(str_replace('_',' ',$facture->paiement->mode)) }})
+    <strong>Historique des paiements</strong>
+    @foreach($facture->paiements as $paiement)
+        <div>{{ $paiement->date_paiement->format('d/m/Y') }} — {{ number_format($paiement->montant,0,',',' ') }} FCFA ({{ ucfirst(str_replace('_',' ',$paiement->mode)) }})</div>
+    @endforeach
+    <div><strong>Total payé : {{ number_format($facture->montantPaye(),0,',',' ') }} FCFA</strong></div>
 </div>
 @else
 <div style="background:#FFFBEB;border-left:4px solid #F59E0B;padding:10px 15px;border-radius:6px;margin-bottom:20px;">
