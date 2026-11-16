@@ -82,12 +82,29 @@ class ProductionController extends Controller
                         'entree', (float) $ligne['quantite_produite'], 'Production #' . $production->idproduction
                     );
 
+                    foreach ($consommations as $item) {
+                        $stockMatiere = Stock::where('idproduit', $item['idproduit'])->lockForUpdate()->first();
+                        if (!$stockMatiere) {
+                            $stockMatiere = Stock::create([
+                                'idproduit' => $item['idproduit'],
+                                'quantite_disponible' => 0,
+                                'seuil_alerte' => 0,
+                            ]);
+                        }
+
+                        $stockMatiere->enregistrerMouvement(
+                            'sortie', (float) $item['quantite_consommee'], 'Production #' . $production->idproduction
+                        );
+                    }
+
                     $created[] = $production;
                 }
 
                 return $created;
             });
         } catch (\DomainException $e) {
+            return back()->withInput()->withErrors(['productions' => $e->getMessage()]);
+        } catch (\Exception $e) {
             return back()->withInput()->withErrors(['productions' => $e->getMessage()]);
         }
 

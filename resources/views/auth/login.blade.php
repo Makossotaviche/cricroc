@@ -3,209 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#f6f7f9">
-    <title>Connexion — Cric Croc</title>
+    <meta name="theme-color" content="#111214">
+    <title>Connexion — CricCroc</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        :root { --cric-orange: #f36a08; --cric-ink: #171923; --cric-muted: #64748b; }
-        * { box-sizing: border-box; }
-        body {
-            min-height: 100vh;
-            margin: 0;
-            background: #f8f9fb url("{{ asset('images/cricroc-login.png') }}") center center / cover no-repeat fixed;
-            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-            color: var(--cric-ink);
-        }
-        .visual-effects { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
-        .hero-image-layer {
-            position: absolute; inset: 0;
-            background: url("{{ asset('images/cricroc-login.png') }}") center center / cover no-repeat;
-            clip-path: polygon(0 0, 54.7% 0, 54.7% 100%, 0 100%);
-            transform-origin: 18% 52%;
-            animation: kenBurns 30s ease-in-out infinite alternate;
-        }
-        .hero-image-layer::after {
-            content: ''; position: absolute; inset: 0 45% 0 0;
-            background: linear-gradient(110deg, rgba(8, 13, 24, .12), transparent 72%);
-        }
-        .image-sweep {
-            position: absolute; top: -24%; left: -28%; width: 17vw; height: 148%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,.11), transparent);
-            transform: skewX(-22deg); opacity: 0;
-            animation: imageSweep 18s ease-in-out infinite;
-        }
-        .floating-chip {
-            position: absolute; z-index: 2; display: block;
-            background:
-                radial-gradient(ellipse at 30% 24%, rgba(255,248,204,.92) 0 7%, transparent 27%),
-                radial-gradient(ellipse at 69% 65%, rgba(173,76,10,.34), transparent 44%),
-                linear-gradient(145deg, #ffe58a 0%, #f5a92e 48%, #d97315 100%);
-            clip-path: polygon(7% 33%, 19% 10%, 46% 5%, 71% 12%, 94% 36%, 86% 69%, 65% 91%, 37% 96%, 13% 78%, 3% 56%);
-            filter: drop-shadow(0 5px 5px rgba(30, 12, 2, .36));
-            transform-origin: 50% 55%;
-        }
-        .floating-chip--one { left: 33%; top: 59%; width: 56px; height: 35px; animation: chipFloatOne 7s ease-in-out infinite; }
-        .floating-chip--two { left: 43%; top: 56%; width: 43px; height: 27px; animation: chipFloatTwo 8.5s ease-in-out infinite; }
-        .floating-chip--three { left: 47%; top: 64%; width: 33px; height: 22px; animation: chipFloatThree 6.8s ease-in-out infinite; }
-        .feature-strip {
-            position: absolute; z-index: 2; left: 8.5%; top: 49%; width: 44%;
-            display: flex; align-items: stretch; overflow: hidden;
-            border: 1px solid rgba(255,255,255,.16); border-radius: 14px;
-            background: rgba(13, 17, 23, .91);
-            box-shadow: 0 12px 32px rgba(0,0,0,.25);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-        }
-        .feature-item {
-            flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center;
-            gap: 10px; padding: 13px 10px; color: #fff;
-            font-size: clamp(11px, .88vw, 14px); font-weight: 650; line-height: 1.2;
-            opacity: 0; animation: featureReveal .8s cubic-bezier(.2,.7,.25,1) forwards;
-        }
-        .feature-item + .feature-item { border-left: 1px solid rgba(255,255,255,.2); }
-        .feature-item:nth-child(1) { animation-delay: .25s; }
-        .feature-item:nth-child(2) { animation-delay: .45s; }
-        .feature-item:nth-child(3) { animation-delay: .65s; }
-        .feature-icon { flex: 0 0 auto; color: #ff861f; font-size: clamp(20px, 2vw, 29px); }
-        @keyframes kenBurns { from { transform: scale(1); } to { transform: scale(1.045); } }
-        @keyframes chipFloatOne { 0%,100% { transform: translate(0,0) rotate(-7deg); } 50% { transform: translate(3px,-9px) rotate(-2deg); } }
-        @keyframes chipFloatTwo { 0%,100% { transform: translate(0,0) rotate(8deg); } 50% { transform: translate(-3px,-7px) rotate(2deg); } }
-        @keyframes chipFloatThree { 0%,100% { transform: translate(0,0) rotate(-3deg); } 50% { transform: translate(2px,-6px) rotate(4deg); } }
-        @keyframes featureReveal { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes imageSweep {
-            0%, 12% { left: -28%; opacity: 0; }
-            18% { opacity: .55; }
-            35% { left: 54%; opacity: .08; }
-            40%, 100% { left: 62%; opacity: 0; }
-        }
-        @keyframes cardEntrance {
-            from { opacity: 0; transform: translateY(14px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .login-card {
-            position: fixed;
-            top: 11.8%;
-            left: 54.6%;
-            width: 40.1%;
-            height: 76.8%;
-            padding: clamp(24px, 3vw, 48px);
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            background: rgba(255,255,255,.985);
-            border: 1px solid rgba(255,255,255,.8);
-            border-radius: 26px;
-            box-shadow: 0 18px 55px rgba(16, 24, 40, .12);
-            z-index: 3;
-            animation: cardEntrance .8s cubic-bezier(.2,.7,.25,1) both;
-        }
-        .brand { text-align: center; margin-bottom: 20px; }
-        .brand-name { font-size: clamp(2rem, 3.1vw, 3rem); line-height: 1; font-weight: 900; letter-spacing: -2px; }
-        .brand-name span { color: var(--cric-orange); }
-        .brand-tagline { color: #292c35; font-size: .85rem; font-weight: 700; font-style: italic; margin-top: 7px; }
-        .brand-tagline::after { content: ''; display: block; width: 76px; height: 3px; border-radius: 3px; background: var(--cric-orange); margin: 5px auto 0; }
-        .login-title { font-size: clamp(1.7rem, 2.3vw, 2.3rem); font-weight: 750; text-align: center; margin: 4px 0 8px; }
-        .login-subtitle { color: var(--cric-muted); text-align: center; line-height: 1.45; margin: 0 0 26px; }
-        .login-field { display: flex; align-items: center; border: 1px solid #d5dbe4; border-radius: 14px; min-height: 60px; padding: 0 16px; margin-bottom: 16px; background: #fff; transition: border-color .2s, box-shadow .2s; }
-        .login-field:focus-within { border-color: var(--cric-orange); box-shadow: 0 0 0 3px rgba(243,106,8,.12); }
-        .login-field > i { color: var(--cric-orange); font-size: 1.35rem; margin-right: 14px; }
-        .login-field input { width: 100%; border: 0; outline: 0; background: transparent; color: #263247; font-size: .98rem; }
-        .login-field input::placeholder { color: #718096; }
-        .password-toggle { border: 0; background: transparent; color: var(--cric-muted); padding: 4px; font-size: 1.1rem; }
-        .btn-login { background: linear-gradient(100deg, #ff7108, #ff5d00); color: #fff; border: 0; border-radius: 13px; min-height: 60px; font-size: 1.05rem; font-weight: 750; box-shadow: 0 7px 16px rgba(243,106,8,.18); transition: transform .2s, box-shadow .2s; }
-        .btn-login:hover { color: #fff; transform: translateY(-1px); box-shadow: 0 10px 22px rgba(243,106,8,.25); }
-        .login-options { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 18px 0 24px; font-size: .83rem; }
-        .form-check-input:checked { background-color: var(--cric-orange); border-color: var(--cric-orange); }
-        .form-check-input:focus { border-color: var(--cric-orange); box-shadow: 0 0 0 .2rem rgba(243,106,8,.18); }
-        .help-text { color: var(--cric-orange); font-weight: 600; }
-        .secure-note { display: flex; justify-content: center; align-items: center; gap: 8px; color: var(--cric-muted); font-size: .83rem; margin-top: auto; padding-top: 15px; }
-        .secure-note i { font-size: 1.1rem; }
-        @media (min-aspect-ratio: 1.65) and (min-width: 900px) {
-            .login-card { top: 4.5%; height: 91%; padding-top: 22px; padding-bottom: 22px; }
-            .brand { margin-bottom: 12px; }
-            .login-subtitle { margin-bottom: 18px; }
-            .login-field { min-height: 54px; margin-bottom: 13px; }
-            .btn-login { min-height: 54px; }
-            .login-options { margin: 14px 0 16px; }
-        }
-        @media (max-width: 899px) {
-            body { min-height: 100svh; padding: 22px 14px; background-position: 28% center; background-attachment: scroll; display: flex; align-items: center; justify-content: center; }
-            .login-card { position: relative; inset: auto; transform: none; width: min(100%, 500px); height: auto; min-height: min(720px, calc(100svh - 44px)); padding: 30px clamp(22px, 7vw, 42px); border-radius: 22px; }
-            .brand-name { font-size: 2.45rem; }
-            .login-title { font-size: 1.9rem; }
-            .hero-image-layer, .feature-strip, .floating-chip, .image-sweep { display: none; }
-        }
-        @media (max-height: 640px) and (min-width: 900px) {
-            .login-card { justify-content: flex-start; }
-            .secure-note { margin-top: 12px; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
-        }
+        :root { --orange:#ff6900; --ink:#111214; --muted:#b7bbc4; }
+        * { box-sizing:border-box; }
+        body { min-height:100vh; margin:0; color:#fff; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; background:radial-gradient(ellipse at 63% 40%,rgba(105,47,13,.36),transparent 42%),radial-gradient(ellipse at 12% 86%,rgba(91,39,8,.3),transparent 38%),linear-gradient(125deg,#080a0d 0%,#17191d 48%,#090a0c 100%); }
+        body::before { content:""; position:fixed; inset:0; background:linear-gradient(90deg,rgba(3,5,7,.12),rgba(5,7,10,.06) 53%,rgba(3,5,7,.22)),linear-gradient(0deg,rgba(0,0,0,.3),transparent 45%); }
+        .page { position:relative; z-index:1; min-height:100vh; padding:28px clamp(22px,4vw,64px) 18px; display:flex; flex-direction:column; }
+        .topline { display:flex; justify-content:flex-end; align-items:center; gap:20px; color:#d0d3d9; font-size:.77rem; letter-spacing:.12em; }
+        .topline i { width:36px; height:2px; background:var(--orange); }
+        .content { flex:1; display:grid; grid-template-columns:minmax(0,1.15fr) minmax(390px,.85fr); align-items:center; gap:clamp(28px,5vw,80px); max-width:1450px; width:100%; margin:8px auto 0; }
+        .hero { padding:16px 0 30px; }
+        .hero-kicker { color:#ff842e; font-size:clamp(1rem,1.6vw,1.45rem); font-style:italic; font-weight:750; line-height:1.1; margin-bottom:12px; }
+        .logo { font-size:clamp(4.2rem,8.4vw,8.4rem); line-height:.88; letter-spacing:-.085em; font-weight:950; text-shadow:0 4px 14px #000; }
+        .logo .white { color:#fff; }.logo .orange { color:var(--orange); }
+        .logo-sub { margin:10px 0 24px 7%; font-size:clamp(.9rem,1.5vw,1.35rem); font-style:italic; font-weight:700; }
+        .hero h1 { max-width:560px; margin:0 0 24px 4%; font-size:clamp(1.35rem,2.2vw,2rem); line-height:1.15; font-weight:800; }
+        .hero h1 span { color:var(--orange); }
+        .features { display:flex; max-width:580px; margin-left:4%; background:rgba(7,8,10,.44); border-radius:50px; }
+        .feature { flex:1; display:flex; align-items:center; gap:10px; padding:11px 15px; font-weight:650; font-size:clamp(.75rem,1vw,.95rem); line-height:1.15; }
+        .feature + .feature { border-left:1px solid rgba(255,128,35,.68); }
+        .feature i { color:#ff8a00; font-size:1.75rem; }
+        .tagline { margin:32px 0 0 2%; color:#ff7b17; font-style:italic; font-weight:750; }
+        .login-card { width:100%; max-width:590px; justify-self:end; padding:clamp(28px,3.3vw,50px); border:1px solid #f8790b; border-radius:38px; background:rgba(8,10,13,.84); box-shadow:0 20px 75px rgba(0,0,0,.56),inset 0 0 40px rgba(255,110,0,.09); backdrop-filter:blur(17px); }
+        .brand { text-align:center; margin-bottom:20px; }
+        .brand-name { color:#fff; font-size:clamp(2.15rem,3.1vw,3rem); line-height:.95; letter-spacing:-.07em; font-weight:950; }
+        .brand-name span { color:var(--orange); }
+        .brand-tagline { margin-top:7px; font-size:.82rem; font-style:italic; font-weight:700; }
+        .brand-tagline::after { content:""; display:block; width:74px; height:3px; margin:5px auto 0; background:var(--orange); border-radius:4px; transform:rotate(-9deg); }
+        .login-title { margin:0 0 8px; text-align:center; font-size:clamp(1.8rem,2.4vw,2.35rem); font-weight:800; }
+        .login-subtitle { color:#d2d4db; text-align:center; line-height:1.45; margin:0 0 26px; }
+        .login-field { display:flex; align-items:center; min-height:60px; margin-bottom:16px; padding:0 16px; border:1px solid #777b83; border-radius:18px; background:rgba(20,23,28,.72); transition:.2s; }
+        .login-field:focus-within { border-color:#ff8500; box-shadow:0 0 0 2px rgba(255,122,0,.2),0 0 22px rgba(255,111,0,.2); }
+        .login-field > i { color:#ff9700; font-size:1.4rem; margin-right:15px; }
+        .login-field input { width:100%; color:white; border:0; outline:0; background:transparent; font-size:.98rem; }
+        .login-field input::placeholder { color:#d0d1d5; }
+        .password-toggle { border:0; color:#bec4ce; padding:4px; background:transparent; font-size:1.1rem; }
+        .btn-login { display:flex; align-items:center; justify-content:center; gap:12px; min-height:60px; border:1px solid #ff9a00; border-radius:18px; color:#fff; background:linear-gradient(100deg,#ff7300,#ff4d00); box-shadow:0 0 20px rgba(255,105,0,.44); font-size:1.05rem; font-weight:800; }
+        .btn-login:hover { color:white; background:linear-gradient(100deg,#ff8500,#ff5b00); box-shadow:0 0 28px rgba(255,105,0,.6); }
+        .login-options { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:18px 2px 20px; font-size:.82rem; }
+        .form-check-input { background-color:#202329; border-color:#858994; }
+        .form-check-input:checked { background-color:var(--orange); border-color:var(--orange); }
+        .form-check-input:focus { border-color:var(--orange); box-shadow:0 0 0 .2rem rgba(255,106,0,.2); }
+        .form-check-label { color:#f1f1f2; }
+        .help-text { color:#ff8700; text-decoration:none; font-weight:700; }.help-text:hover { color:#ffad4a; text-decoration:underline; }
+        .or-divider { display:flex; align-items:center; gap:16px; color:#bfc2c9; font-size:.85rem; margin:0 0 20px; }.or-divider::before,.or-divider::after { content:""; height:1px; flex:1; background:#858890; }
+        .google-button { width:100%; min-height:50px; display:flex; align-items:center; justify-content:center; gap:12px; border:1px solid #777b83; border-radius:28px; color:#fff; background:rgba(20,23,28,.62); font-size:.85rem; font-weight:650; }
+        .google-button .google-g { font:900 1.3rem Arial,sans-serif; color:#4285f4; text-shadow:1px 0 #34a853,-1px 0 #fbbc05; }
+        .secure-note { display:flex; justify-content:center; align-items:center; gap:9px; color:#c5c8ce; font-size:.82rem; margin-top:19px; }.secure-note i { color:#ff8900; font-size:1.15rem; }
+        .footer { display:flex; align-items:center; justify-content:center; gap:14px; color:#e1e1e3; font-size:.78rem; }.footer i { width:30px; height:1px; background:#ff8700; }.footer b { color:#ff8700; }
+        @media(max-width:900px) { .page { padding:20px 16px 14px; }.content { display:flex; justify-content:center; margin:14px auto; }.hero { display:none; }.login-card { max-width:520px; justify-self:auto; padding:30px clamp(22px,7vw,42px); border-radius:28px; }.topline { font-size:.68rem; gap:12px; }.footer { font-size:.72rem; } }
+        @media(max-height:720px) and (min-width:901px) { .page { padding-top:15px; }.login-card { padding-top:22px; padding-bottom:22px; }.brand { margin-bottom:12px; }.login-subtitle { margin-bottom:16px; }.login-field { min-height:52px; margin-bottom:12px; }.btn-login { min-height:52px; }.login-options { margin:13px 2px; }.google-button { min-height:44px; }.secure-note { margin-top:12px; } }
+        @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition:none!important; } }
     </style>
 </head>
 <body>
-    <div class="visual-effects" aria-hidden="true">
-        <div class="hero-image-layer"></div>
-        <div class="image-sweep"></div>
-        <span class="floating-chip floating-chip--one"></span>
-        <span class="floating-chip floating-chip--two"></span>
-        <span class="floating-chip floating-chip--three"></span>
-        <div class="feature-strip">
-            <div class="feature-item"><i class="feature-icon bi bi-patch-check"></i><span>Produits<br>de qualité</span></div>
-            <div class="feature-item"><i class="feature-icon bi bi-shield-check"></i><span>Stock<br>sécurisé</span></div>
-            <div class="feature-item"><i class="feature-icon bi bi-truck"></i><span>Livraison<br>rapide</span></div>
-        </div>
-    </div>
-    <main class="login-card" aria-labelledby="loginTitle">
-        <div class="brand" aria-label="Cric Croc, le goût du croustillant">
-            <div class="brand-name">Cric<span>Croc</span></div>
-            <div class="brand-tagline">Le goût du croustillant</div>
-        </div>
-
-        <h1 class="login-title" id="loginTitle">Connexion</h1>
-        <p class="login-subtitle">Accédez à votre espace pour gérer vos activités<br class="d-none d-sm-inline"> en toute simplicité.</p>
-
-        @if($errors->any())
-            <div class="alert alert-danger py-2" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $errors->first() }}
-            </div>
-        @endif
-
-        <form method="POST" action="{{ route('login') }}">
-            @csrf
-            <label class="visually-hidden" for="email">Adresse e-mail</label>
-            <div class="login-field">
-                <i class="bi bi-person" aria-hidden="true"></i>
-                <input id="email" type="email" name="email" value="{{ old('email') }}" placeholder="Adresse e-mail" autocomplete="username" required autofocus>
-            </div>
-
-            <label class="visually-hidden" for="password">Mot de passe</label>
-            <div class="login-field">
-                <i class="bi bi-lock" aria-hidden="true"></i>
-                <input id="password" type="password" name="password" placeholder="Mot de passe" autocomplete="current-password" required>
-                <button class="password-toggle" type="button" id="togglePassword" aria-label="Afficher le mot de passe">
-                    <i class="bi bi-eye-slash" aria-hidden="true"></i>
-                </button>
-            </div>
-
-            <div class="login-options">
-                <div class="form-check mb-0">
-                    <input type="checkbox" class="form-check-input" name="remember" id="remember">
-                    <label class="form-check-label text-secondary" for="remember">Se souvenir de moi</label>
+    <div class="page">
+        <nav class="topline" aria-label="Valeurs CricCroc"><span>QUALITÉ</span><b>·</b><span>SÉCURITÉ</span><b>·</b><span>CROISSANCE</span><i></i></nav>
+        <div class="content">
+            <section class="hero" aria-label="CricCroc">
+                <div class="hero-kicker">Le goût<br>du croustillant</div>
+                <div class="logo"><span class="white">Cric</span><span class="orange">Croc</span></div>
+                <div class="logo-sub">Chips croustillants · 100% plaisir</div>
+                <h1>Une entreprise congolaise,<br>au service de <span>votre plaisir !</span></h1>
+                <div class="features">
+                    <div class="feature"><i class="bi bi-patch-check"></i><span>Produits<br>de qualité</span></div>
+                    <div class="feature"><i class="bi bi-shield-check"></i><span>Stock<br>sécurisé</span></div>
+                    <div class="feature"><i class="bi bi-truck"></i><span>Livraison<br>rapide</span></div>
                 </div>
-                <span class="help-text">Système sécurisé</span>
-            </div>
-
-            <button type="submit" class="btn btn-login w-100">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
-            </button>
-        </form>
-
-        <div class="secure-note"><i class="bi bi-shield-check"></i><span>Système sécurisé — CricCroc</span></div>
-    </main>
-
+                <div class="tagline">CricCroc,<br>toujours plus proche de vous !</div>
+            </section>
+            <main class="login-card" aria-labelledby="loginTitle">
+                <div class="brand" aria-label="CricCroc, le goût du croustillant">
+                    <div class="brand-name">Cric<span>Croc</span></div>
+                    <div class="brand-tagline">Le goût du croustillant</div>
+                </div>
+                <h1 class="login-title" id="loginTitle">Connexion</h1>
+                <p class="login-subtitle">Accédez à votre espace pour gérer vos activités<br class="d-none d-sm-inline"> en toute simplicité.</p>
+                @if($errors->any())
+                    <div class="alert alert-danger py-2" role="alert"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $errors->first() }}</div>
+                @endif
+                <form method="POST" action="{{ route('login') }}">
+                    @csrf
+                    <label class="visually-hidden" for="email">Adresse e-mail</label>
+                    <div class="login-field"><i class="bi bi-person" aria-hidden="true"></i><input id="email" type="email" name="email" value="{{ old('email') }}" placeholder="Nom d’utilisateur" autocomplete="username" required autofocus></div>
+                    <label class="visually-hidden" for="password">Mot de passe</label>
+                    <div class="login-field"><i class="bi bi-lock" aria-hidden="true"></i><input id="password" type="password" name="password" placeholder="Mot de passe" autocomplete="current-password" required><button class="password-toggle" type="button" id="togglePassword" aria-label="Afficher le mot de passe"><i class="bi bi-eye-slash" aria-hidden="true"></i></button></div>
+                    <button type="submit" class="btn btn-login w-100"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>Se connecter <i class="bi bi-chevron-right ms-auto me-2" aria-hidden="true"></i></button>
+                    <div class="login-options"><div class="form-check mb-0"><input type="checkbox" class="form-check-input" name="remember" id="remember" checked><label class="form-check-label" for="remember">Se souvenir de moi</label></div><span class="help-text">Mot de passe oublié ?</span></div>
+                </form>
+                <div class="or-divider"><span>OU</span></div>
+                <button type="button" class="google-button" aria-label="Connexion Google non configurée"><span class="google-g">G</span>Se connecter avec Google</button>
+                <div class="secure-note"><i class="bi bi-shield-lock"></i><span>Système sécurisé — CricCroc</span></div>
+            </main>
+        </div>
+        <footer class="footer"><i></i><span>CricCroc</span><b>•</b><span>Le goût du croustillant</span><i></i></footer>
+    </div>
     <script>
         document.getElementById('togglePassword').addEventListener('click', function () {
             const input = document.getElementById('password');
